@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevSoc - Members</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Additional styles for members page */
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .member-card {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .member-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .member-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .member-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .member-image {
+            height: 200px;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .member-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .member-content {
+            padding: 20px;
+        }
+
+        .member-role {
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .member-name {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .member-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .member-tag {
+            background-color: #f3f4f6;
+            color: var(--gray);
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-weight: 500;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 0;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .modal-header {
+            position: relative;
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .modal-header-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-content {
+            padding: 30px;
+        }
+
+        .modal-profile {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 20px;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: -60px;
+        }
+
+        .modal-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-profile-info h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .modal-profile-info .member-role {
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+
+        .modal-bio {
+            margin-bottom: 30px;
+        }
+
+        .modal-bio h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .modal-bio p {
+            color: var(--gray);
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .modal-skills {
+            margin-bottom: 30px;
+        }
+
+        .modal-skills h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .member-projects {
+            margin-bottom: 30px;
+        }
+
+        .member-projects h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .project-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .project-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f9fafb;
+        }
+
+        .project-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .project-desc {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+
+        .project-link {
+            display: inline-block;
+            font-size: 14px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .project-link:hover {
+            text-decoration: underline;
+        }
+
+        .modal-connect {
+            display: flex;
+            gap: 15px;
+        }
+
+        .connect-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f3f4f6;
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .connect-link:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 30px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 768px) {
+            .modal-avatar {
+                width: 80px;
+                height: 80px;
+                margin-top: -50px;
+            }
+
+            .modal-profile-info h2 {
+                font-size: 24px;
+            }
+
+            .modal-header {
+                height: 200px;
+            }
+
+            .project-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="nav-container">
+                    <a href="index.html" class="logo">
+                        <div class="logo-img">
+                            <img src="WhatsApp Image 2025-05-02 at 12.59.33_bc17048d.jpg" alt="DevSoc Logo">
+                        </div>
+                        <span class="logo-text">DevSoc</span>
+                    </a>
+                </div>
+                <div class="nav-links">
+                    <a href="index.html">Home</a>
+                    <a href="#">About</a>
+                    <a href="#">Events</a>
+                    <a href="#" class="active">Members</a>
+                    <a href="#">Contact</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="members-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Members</h2>
+                <p>Meet the talented developers who make up our vibrant community. From front-end enthusiasts to backend wizards, each member brings unique skills and perspectives.</p>
+            </div>
+
+            <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">All Members</button>
+                <button class="filter-btn" data-filter="frontend">Frontend</button>
+                <button class="filter-btn" data-filter="backend">Backend</button>
+                <button class="filter-btn" data-filter="fullstack">Full Stack</button>
+                <button class="filter-btn" data-filter="mobile">Mobile</button>
+                <button class="filter-btn" data-filter="ai">AI/ML</button>
+            </div>
+
+            <div class="members-grid">
+                <!-- Member 1 -->
+                <div class="member-card" data-member-id="1" data-categories="frontend,design">
+                    <div class="member-image">
+                        <img src="/api/placeholder/400/320" alt="Member Portrait">
+                    </div>
+                    <div class="member-content">
+                        <div class="member-role">Frontend Developer</div>
+                        <h3 class="member-name">Ranjith</h3>
+                        <p>UI/UX enthusiast with a passion for creating beautiful, intuitive interfaces.</p>
+                        <div class="member-tags">
+                            <span class="member-tag">React</span>
+                            <span class="member-tag">CSS</span>
+                            <span class="member-tag">UI Design</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member 2 -->
+                <div class="member-card" data-member-id="2" data-categories="backend,devops">
+                    <div class="member-image">
+                        <img src="img\WhatsApp Image 2024-03-11 at 18.06.27_0de74eb5.jpg" alt="Member Portrait">
+                    </div>
+                    <div class="member-content">
+                        <div class="member-role">Backend Developer</div>
+                        <h3 class="member-name">Manu</h3>
+                        <p>Performance optimization specialist with a focus on scalable architecture.</p>
+                        <div class="member-tags">
+                            <span class="member-tag">Node.js</span>
+                            <span class="member-tag">MongoDB</span>
+                            <span class="member-tag">Docker</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member 3 -->
+                <div class="member-card" data-member-id="3" data-categories="fullstack,design">
+                    <div class="member-image">
+                        <img src="/api/placeholder/400/320" alt="Member Portrait">
+                    </div>
+                    <div class="member-content">
+                        <div class="member-role">Full Stack Developer</div>
+                        <h3 class="member-name">Nikhil</h3>
+                        <p>Jack of all trades with experience in multiple tech stacks and project management.</p>
+                        <div class="member-tags">
+                            <span class="member-tag">JavaScript</span>
+                            <span class="member-tag">Python</span>
+                            <span class="member-tag">AWS</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member 4 -->
+                <div class="member-card" data-member-id="4" data-categories="mobile,frontend">
+                    <div class="member-image">
+                        <img src="/api/placeholder/400/320" alt="Member Portrait">
+                    </div>
+                    <div class="member-content">
+                        <div class="member-role">Mobile Developer</div>
+                        <h3 class="member-name">Rahul</h3>
+                        <p>Expert in native and cross-platform mobile application development.</p>
+                        <div class="member-tags">
+                            <span class="member-tag">Flutter</span>
+                            <span class="member-tag">React Native</span>
+                            <span class="member-tag">Swift</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member 5 -->
+                <div class="member-card" data-member-id="5" data-categories="ai,backend">
+                    <div class="member-image">
+                        <img src="/api/placeholder/400/320" alt="Member Portrait">
+                    </div>
+                    <div class="member-content">
+                        <div class="member-role">AI/ML Engineer</div>
+                        <h3 class="member-name">Akshay</h3>
+                        <p>Building intelligent solutions with machine learning and data science.</p>
+                        <div class="member-tags">
+                            <span class="member-tag">Python</span>
+                            <span class="member-tag">TensorFlow</span>
+                            <span class="member-tag">NLP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member 6 -->
+                <div class="member-card" data-member-id="6" data-categories="fullstack,devops">
+                    <div class="member-image">
+                        <img src="/api/placeholder/400/320" alt="Member Portrait">
+                    </div>
+                    <div class="member-content">
+                        <div class="member-role">Full Stack Developer</div>
+                        <h3 class="member-name">Adith</h3>
+                        <p>Specialized in building and deploying scalable web applications.</p>
+                        <div class="member-tags">
+                            <span class="member-tag">Vue.js</span>
+                            <span class="member-tag">Django</span>
+                            <span class="member-tag">AWS</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member 7 -->
+                <div class="member-card" data-member-id="7" data-categories="mobile,ai">
+                    <div class="member-image">
+                        <img src="/api/placeholder/400/320" alt="Member Portrait">
+                    </div>
+                    <div class="member-content">
+                        <div class="member-role">Mobile AI Developer</div>
+                        <h3 class="member-name">Olivia </h3>
+                        <p>Focused on implementing AI solutions for mobile platforms.</p>
+                        <div class="member-tags">
+                            <span class="member-tag">Kotlin</span>
+                            <span class="member-tag">TensorFlow Lite</span>
+                            <span class="member-tag">Computer Vision</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member 8 -->
+                <div class="member-card" data-member-id="8" data-categories="frontend,design">
+                    <div class="member-image">
+                        <img src="/api/placeholder/400/320" alt="Member Portrait">
+                    </div>
+                    <div class="member-content">
+                        <div class="member-role">UX Developer</div>
+                        <h3 class="member-name">chetan</h3>
+                        <p>Creating engaging and accessible user experiences with a focus on design systems.</p>
+                        <div class="member-tags">
+                            <span class="member-tag">Accessibility</span>
+                            <span class="member-tag">Figma</span>
+                            <span class="member-tag">SCSS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Member Detail Modal -->
+    <div class="modal-overlay" id="memberModal">
+        <div class="modal">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <img class="modal-header-img" src="/api/placeholder/800/250" alt="Member Header">
+            </div>
+            <div class="modal-content">
+                <div class="modal-profile">
+                    <div class="modal-avatar">
+                        <img src="/api/placeholder/200/200" alt="Member Avatar">
+                    </div>
+                    <div class="modal-profile-info">
+                        <h2>Member Name</h2>
+                        <div class="member-role">Role</div>
+                    </div>
+                </div>
+
+                <div class="modal-bio">
+                    <h3>About</h3>
+                    <p>Member bio will be loaded here dynamically.</p>
+                </div>
+
+                <div class="modal-skills">
+                    <h3>Skills & Expertise</h3>
+                    <div class="member-tags" id="modalSkills">
+                        <!-- Skills will be populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="member-projects">
+                    <h3>Projects</h3>
+                    <div class="project-list" id="projectsList">
+                        <!-- Projects will be populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="modal-connect">
+                    <a href="#" class="connect-link">GH</a>
+                    <a href="#" class="connect-link">LI</a>
+                    <a href="#" class="connect-link">TW</a>
+                    <a href="#" class="connect-link">IG</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>DevSoc</h3>
+                    <div class="footer-logo">
+                        <img src="WhatsApp Image 2025-05-02 at 12.59.33_bc17048d.jpg" alt="DevSoc Logo">
+                    </div>
+                    <p>A community of passionate developers dedicated to coding, innovation, and tech excellence.</p>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Events</a></li>
+                        <li><a href="#">Members</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Us</h3>
+                    <ul>
+                        <li>Email: info@devsoc.org</li>
+                        <li>Phone: (123) 456-7890</li>
+                        <li>Address: 123 Campus Drive, University City</li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Connect With Us</h3>
+                    <div class="social-links">
+                        <a href="#">FB</a>
+                        <a href="#">TW</a>
+                        <a href="#">IG</a>
+                        <a href="#">LI</a>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 DevSoc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Member data
+        const membersData = {
+            "1": {
+                name: "Ranjith",
+                role: "Frontend Developer",
+                bio: "Emma is a passionate frontend developer with 5 years of experience crafting user interfaces that are both beautiful and functional. She specializes in React and CSS animations, with a keen eye for design details that enhance user experience. Emma joined DevSoc in 2023 and has been an active contributor to several community projects.",
+                avatar: "/api/placeholder/200/200",
+                headerImage: "/api/placeholder/800/250",
+                skills: ["React", "CSS", "JavaScript", "UI Design", "Figma", "TypeScript", "Next.js", "Tailwind CSS"],
+                projects: [
+                    {
+                        title: "DevSoc Portfolio",
+                        description: "Redesigned the DevSoc community portfolio website with modern UI/UX principles",
+                        link: "#"
+                    },
+                    {
+                        title: "Animation Library",
+                        description: "Open-source library of reusable React animations and transitions",
+                        link: "#"
+                    },
+                    {
+                        title: "Accessibility Toolkit",
+                        description: "A set of tools to improve web accessibility implementation",
+                        link: "#"
+                    }
+                ],
+                social: {
+                    github: "#",
+                    linkedin: "#",
+                    twitter: "#",
+                    instagram: "#"
+                }
+            },
+            "2": {
+                name: "Manu",
+                role: "Backend Developer",
+                bio: "Michael specializes in building robust and scalable backend systems. With expertise in Node.js and MongoDB, he focuses on creating efficient database architectures and API endpoints. He's particularly interested in microservices architecture and containerization with Docker. Michael has been with DevSoc since its founding and leads the backend development workshop series.",
+                avatar: "/api/placeholder/200/200",
+                headerImage: "/api/placeholder/800/250",
+                skills: ["Node.js", "MongoDB", "Docker", "Express", "GraphQL", "AWS", "Redis", "PostgreSQL"],
+                projects: [
+                    {
+                        title: "API Gateway",
+                        description: "Built a custom API gateway solution for routing and load balancing",
+                        link: "#"
+                    },
+                    {
+                        title: "Microservices Framework",
+                        description: "Developed a framework for seamless microservices communication",
+                        link: "#"
+                    },
+                    {
+                        title: "Database Performance Tools",
+                        description: "Created tools for monitoring and improving database performance",
+                        link: "#"
+                    }
+                ],
+                social: {
+                    github: "#",
+                    linkedin: "#",
+                    twitter: "#"
+                }
+            },
+            "3": {
+                name: "Nikhil",
+                role: "Full Stack Developer",
+                bio: "Sarah brings together the best of both worlds as a full stack developer with a background in project management. She works across the entire development stack and excels at bridging communication between different teams. With experience in JavaScript and Python, she builds complete solutions from database to interface. Sarah joined DevSoc in 2024 and has quickly become a valuable mentor to junior members.",
+                avatar: "/api/placeholder/200/200",
+                headerImage: "/api/placeholder/800/250",
+                skills: ["JavaScript", "Python", "AWS", "React", "Django", "MySQL", "Redux", "Git"],
+                projects: [
+                    {
+                        title: "Project Management Tool",
+                        description: "Full stack application for agile team collaboration and task tracking",
+                        link: "#"
+                    },
+                    {
+                        title: "E-commerce Platform",
+                        description: "Built a complete e-commerce solution with payment processing",
+                        link: "#"
+                    },
+                    {
+                        title: "DevSoc Mentorship Portal",
+                        description: "Platform connecting junior and senior developers for mentorship",
+                        link: "#"
+                    }
+                ],
+                social: {
+                    github: "#",
+                    linkedin: "#",
+                    twitter: "#",
+                    instagram: "#"
+                }
+            },
+            "4": {
+                name: "Rahul",
+                role: "Mobile Developer",
+                bio: "David is our mobile development expert, specializing in both native and cross-platform solutions. He has published multiple apps on both iOS and Android platforms, focusing on creating seamless user experiences. His technical expertise spans Flutter, React Native, and Swift. David leads the mobile development initiatives at DevSoc and organizes monthly app development workshops.",
+                avatar: "/api/placeholder/200/200",
+                headerImage: "/api/placeholder/800/250",
+                skills: ["Flutter", "React Native", "Swift", "Kotlin", "Firebase", "Mobile UI/UX", "AppStore Optimization", "CI/CD"],
+                projects: [
+                    {
+                        title: "DevSoc Mobile App",
+                        description: "The official mobile app for DevSoc members with event notifications",
+                        link: "#"
+                    },
+                    {
+                        title: "Health Tracker",
+                        description: "Cross-platform health monitoring application with cloud sync",
+                        link: "#"
+                    },
+                    {
+                        title: "AR Navigation",
+                        description: "Augmented reality indoor navigation system",
+                        link: "#"
+                    }
+                ],
+                social: {
+                    github: "#",
+                    linkedin: "#",
+                    twitter: "#"
+                }
+            },
+            "5": {
+                name: "Akshay",
+                role: "AI/ML Engineer",
+                bio: "Priya combines her strong mathematical background with programming skills to develop AI and machine learning solutions. She specializes in natural language processing and computer vision applications. Her work involves training models and implementing them in production environments. Priya joined DevSoc's AI interest group in 2024 and has been instrumental in organizing the annual AI hackathon.",
+                avatar: "/api/placeholder/200/200",
+                headerImage: "/api/placeholder/800/250",
+                skills: ["Python", "TensorFlow", "PyTorch", "NLP", "Computer Vision", "Data Science", "MLOps", "NumPy"],
+                projects: [
+                    {
+                        title: "Sentiment Analysis Tool",
+                        description: "NLP pipeline for analyzing customer feedback and social media sentiment",
+                        link: "#"
+                    },
+                    {
+                        title: "Image Recognition API",
+                        description: "Computer vision API for object detection and classification",
+                        link: "#"
+                    },
+                    {
+                        title: "Predictive Analytics Dashboard",
+                        description: "Data visualization tool for business intelligence with ML predictions",
+                        link: "#"
+                    }
+                ],
+                social: {
+                    github: "#",
+                    linkedin: "#",
+                    twitter: "#"
+                }
+            },
+            "6": {
+                name: "Adith",
+                role: "Full Stack Developer",
+                bio: "James specializes in building and deploying scalable web applications with a focus on cloud infrastructure. With expertise in Vue.js and Django, he creates comprehensive solutions that are both powerful and maintainable. His DevOps knowledge ensures smooth deployment processes. James has been with DevSoc for 2 years and leads the cloud computing special interest group.",
+                avatar: "/api/placeholder/200/200",
+                headerImage: "/api/placeholder/800/250",
+                skills: ["Vue.js", "Django", "AWS", "CI/CD", "Terraform", "PostgreSQL", "Docker", "Kubernetes"],
+                projects: [
+                    {
+                        title: "Cloud Deployment Pipeline",
+                        description: "Automated infrastructure as code deployment system",
+                        link: "#"
+                    },
+                    {
+                        title: "Content Management System",
+                        description: "Custom CMS with headless architecture and API-first approach",
+                        link: "#"
+                    },
+                    {
+                        title: "Monitoring Dashboard",
+                        description: "Real-time application monitoring and alerting system",
+                        link: "#"
+                    }
+                ],
+                social: {
+                    github: "#",
+                    linkedin: "#",
+                    twitter: "#"
+                }
+            },
+            "7": {
+                name: "Oliver",
+                role: "Mobile AI Developer",
+                bio: "Olivia works at the intersection of mobile development and artificial intelligence, focusing on implementing AI solutions for mobile platforms. She specializes in optimizing neural networks for mobile devices and creating intelligent user experiences. Her expertise in TensorFlow Lite and computer vision enables apps to leverage AI capabilities while maintaining performance. Olivia joined DevSoc in 2023 and leads the mobile AI special interest group.",
+                avatar: "/api/placeholder/200/200",
+                headerImage: "/api/placeholder/800/250",
+                skills: ["Kotlin", "TensorFlow Lite", "Computer Vision", "Swift", "Mobile ML", "Android", "iOS", "Model Optimization"],
+                projects: [
+                    {
+                        title: "AR Object Recognition",
+                        description: "Mobile app that identifies objects in real-time using the device camera",
+                        link: "#"
+                    },
+                    {
+                        title: "On-device NLP",
+                        description: "Implementation of natural language processing directly on mobile devices",
+                        link: "#"
+                    },
+                    {
+                        title: "Fitness Pose Estimation",
+                        description: "App that analyzes exercise form using pose estimation algorithms",
+                        link: "#"
+                    }
+                ],
+                social: {
+                    github: "#",
+                    linkedin: "#",
+                    twitter: "#",
+                    instagram: "#"
+                }
+            },
+            "8": {
+                name: "chetan",
+                role: "UX Developer",
+                bio: "Alex combines design sensibility with frontend development skills to create engaging and accessible user experiences. With a background in psychology and design, Alex focuses on creating interfaces that are intuitive and inclusive. Specializing in design systems and accessibility compliance, Alex ensures that applications work well for all users. Alex has been a DevSoc member since 2022 and leads the accessibility initiative.",
+                avatar: "/api/placeholder/200/200",
+                headerImage: "/api/placeholder/800/250",
+                skills: ["Accessibility", "Figma", "SCSS", "Design Systems", "WCAG", "User Research", "Prototyping", "Usability Testing"],
+                projects: [
+                    {
+                        title: "Accessibility Audit Tool",
+                        description: "Automated tool for checking web accessibility compliance",
+                        link: "#"
+                    },
+                    {
+                        title: "Design System Framework",
+                        description: "Modular design system implementation for large-scale applications",
+                        link: "#"
+                    },
+                    {
+                        title: "User Testing Platform",
+                        description: "Platform for conducting remote usability testing sessions",
+                        link: "#"
+                    }
+                ],
+                social: {
+                    github: "#",
+                    linkedin: "#",
+                    twitter: "#",
+                    dribbble: "#"
+                }
+            }
+        };
+
+        // DOM elements
+        const memberCards = document.querySelectorAll('.member-card');
+        const modalOverlay = document.getElementById('memberModal');
+        const modalClose = document.querySelector('.modal-close');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+
+        // Open modal with member data
+        function openModal(memberId) {
+            const member = membersData[memberId];
+            
+            // Update modal content
+            document.querySelector('.modal-profile-info h2').textContent = member.name;
+            document.querySelector('.modal-profile-info .member-role').textContent = member.role;
+            document.querySelector('.modal-avatar img').src = member.avatar;
+            document.querySelector('.modal-header-img').src = member.headerImage;
+            document.querySelector('.modal-bio p').textContent = member.bio;
+            
+            // Update skills
+            const skillsContainer = document.getElementById('modalSkills');
+            skillsContainer.innerHTML = '';
+            member.skills.forEach(skill => {
+                const skillTag = document.createElement('span');
+                skillTag.className = 'member-tag';
+                skillTag.textContent = skill;
+                skillsContainer.appendChild(skillTag);
+            });
+            
+            // Update projects
+            const projectsContainer = document.getElementById('projectsList');
+            projectsContainer.innerHTML = '';
+            member.projects.forEach(project => {
+                const projectItem = document.createElement('div');
+                projectItem.className = 'project-item';
+                projectItem.innerHTML = `
+                    <div class="project-title">${project.title}</div>
+                    <div class="project-desc">${project.description}</div>
+                    <a href="${project.link}" class="project-link" target="_blank">View Project</a>
+                `;
+                projectsContainer.appendChild(projectItem);
+            });
+            
+            // Update social links
+            const socialLinks = document.querySelectorAll('.modal-connect .connect-link');
+            socialLinks[0].href = member.social.github || '#';
+            socialLinks[1].href = member.social.linkedin || '#';
+            socialLinks[2].href = member.social.twitter || '#';
+            socialLinks[3].href = member.social.instagram || member.social.dribbble || '#';
+            
+            // Show modal
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Filter members
+        function filterMembers(category) {
+            memberCards.forEach(card => {
+                const categories = card.dataset.categories.split(',');
+                if (category === 'all' || categories.includes(category)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Event listeners
+        memberCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const memberId = card.dataset.memberId;
+                openModal(memberId);
+            });
+        });
+
+        modalClose.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active state
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Filter members
+                const filter = button.dataset.filter;
+                filterMembers(filter);
+            });
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
